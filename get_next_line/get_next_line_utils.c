@@ -3,32 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 00:50:05 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/11 13:07:10 by muhsin           ###   ########.fr       */
+/*   Updated: 2025/08/11 19:53:04 by mkulbak          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static void *ft_memcpy(void *dst, const void *src, size_t n)
+char	*ft_strchr(const char *s, int c)
+{
+	int	i;
+	int	len;
+
+	len = ft_strlen(s);
+	i = 0;
+	while (i <= len)
+	{
+		if (s[i] == (char)c)
+			return ((char *)(s + i));
+		i++;
+	}
+	return (NULL);
+}
+
+void	*ft_memmove(void *dst, const void *src, size_t len, int start)
 {
 	size_t	i;
 
-	if (!dst && !src)
-		return (NULL);
-	i = 0;
-	while (i < n)
-	{
-		*(unsigned char *)(dst + i) = *(unsigned char *)(src + i);
-		i++;
-	}
-	return (dst);
-}
-
-void	*ft_memmove(void *dst, const void *src, size_t len)
-{
 	if (!src && !dst)
 		return (NULL);
 	if (dst > src)
@@ -40,7 +43,15 @@ void	*ft_memmove(void *dst, const void *src, size_t len)
 		}
 	}
 	else
-		ft_memcpy(dst, src, len);
+	{
+		i = 0;
+		while (i < len + start)
+		{
+			*(unsigned char *)(dst + i + start) = *(unsigned char *)(src + i);
+			i++;
+		}
+				
+	}	
 	return (dst);
 }
 

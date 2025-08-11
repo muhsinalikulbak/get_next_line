@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/10 22:57:39 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/11 13:30:44 by muhsin           ###   ########.fr       */
+/*   Updated: 2025/08/11 19:51:28 by mkulbak          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 #include <stdlib.h>
 void	*ft_memmove(void *dst, const void *src, size_t len, int start);
 size_t	ft_strlen(const char *s);
-
+char	*ft_strchr(const char *s, int c);
 
 
 

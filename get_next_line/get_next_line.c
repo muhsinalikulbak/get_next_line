@@ -3,17 +3,63 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/10 22:54:21 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/11 13:37:30 by muhsin           ###   ########.fr       */
+/*   Updated: 2025/08/11 21:42:33 by mkulbak          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
+int	str_cpy(char *read_from_fd, char **next_line)
+{
+	char	*temp_next;
+	int		next_len;
+	int		read_len;
 
-// memmove kullan
+	read_len = ft_strlen(read_from_fd);
+	next_len = ft_strlen(*next_line);
+	temp_next = *next_line;
+	*next_line = malloc(next_len + read_len + 1);
+	if (*next_line)
+	{
+		return (FALSE);
+	}
+	ft_memmove(*next_line, temp_next, next_len, 0);
+	ft_memmove(*next_line, read_from_fd, read_len, next_len);
+	*next_line[next_len + read_len] = '\0';
+	return (TRUE);
+}
+
+int	print_error(char *read_from_fd, char **static_buffer, char *message)
+{
+	write(2, message, ft_strlen(message));
+	if (*static_buffer)
+		free(*static_buffer);
+	if (read_from_fd)
+		free(read_from_fd);
+	return (FALSE);
+}
+
+int	cut_static_buffer(char **static_buffer, char **next_line)
+{
+	int		len;
+	char	*temp;
+
+	len = ft_strlen(*static_buffer) + ft_strlen(*next_line);
+	temp = malloc(len + 1);
+	if (!temp)
+		return (FALSE);
+	ft_memmove(temp, *static_buffer, ft_strlen(*static_buffer), 0);
+	ft_memmove(temp, *next_line, ft_strlen(*next_line), ft_strlen(*static_buffer));
+	temp[len] = '\0';
+	free(*next_line);
+	free(*static_buffer);
+	*static_buffer = NULL;
+	*next_line = NULL;
+	return (TRUE);
+}
 
 int	read_fd(char **static_buffer, int fd, char **next_line)
 {
@@ -22,23 +68,24 @@ int	read_fd(char **static_buffer, int fd, char **next_line)
 
 	read_from_fd = malloc(BUFFER_SIZE + 1);
 	if (!read_from_fd)
-		return (NULL);
+		return (print_error(NULL, static_buffer, "Memory allocation failed\n"));
 	bytes = 1;
 	while (bytes > 0)
 	{
 		bytes = read(fd, read_from_fd, BUFFER_SIZE);
 		if (bytes == -1)
-		{
-			// HATA VER ÇIK
-		}
-		if (bytes == 0)
-		{
-			// NE olacak bak
-		}
+			return (print_error(read_from_fd, static_buffer, "Read process failed\n"));
 		read_from_fd[bytes] = '\0';
-		// new line arayışı yap, new_line varsa break ile kır.
+		if (ft_strchr(read_from_fd, '\n'))
+		{
+			if (!str_cpy(read_from_fd, next_line))
+				return (print_error(read_from_fd, static_buffer, "Memory allocation failed\n"));
+			break ;
+		}
+		else if (!str_cpy(read_from_fd, next_line))
+			return (print_error(read_from_fd, static_buffer, "Memory allocation failed\n"));
 	}
-	
+
 	if (*static_buffer)
 	{
 		// Eğer buffer doluysa read_from_fd 'nin başına bu buffer'ı ekle
@@ -80,7 +127,8 @@ char	*get_next_line(int fd)
 	check = read_fd(&buffer, fd, &next_line);
 	if (!check)
 	{
-		write(2, "Memory allocation failed\n", 13);
+		if (next_line)
+			free(next_line);
 		return (NULL);
 	}
 	else if (next_line)
