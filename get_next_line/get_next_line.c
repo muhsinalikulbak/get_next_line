@@ -188,7 +188,7 @@ int	check_new_line_from_buffer(char **static_buffer, char **next_line)
 			return (FALSE);
 		}
 		free(temp);
-	}
+	}	
 	return (TRUE);
 }
 
