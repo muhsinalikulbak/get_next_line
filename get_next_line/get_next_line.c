@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/10 22:54:21 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/12 11:58:33 by muhsin           ###   ########.fr       */
+/*   Updated: 2025/08/12 16:25:01 by mkulbak          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ int	check_new_line_from_buffer(char **static_buffer, char **next_line)
 		temp = *static_buffer;
 		*static_buffer = ft_strdup(after_new_line);
 		free(temp);
-	}
+	}	
 	return (TRUE);
 }
 
