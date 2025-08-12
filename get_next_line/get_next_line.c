@@ -3,26 +3,33 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
+/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/10 22:54:21 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/11 21:42:33 by mkulbak          ###   ########.fr       */
+/*   Updated: 2025/08/12 11:58:33 by muhsin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-int	str_cpy(char *read_from_fd, char **next_line)
+int	str_cpy(char *read_from_fd, char **next_line, int is_new_line)
 {
 	char	*temp_next;
+	char	*new_line_position;
 	int		next_len;
 	int		read_len;
 
-	read_len = ft_strlen(read_from_fd);
+	if (is_new_line)
+	{
+		new_line_position = ft_strchr(read_from_fd, '\n');
+		read_len = new_line_position - read_from_fd + 1;
+	}
+	else
+		read_len = ft_strlen(read_from_fd);
 	next_len = ft_strlen(*next_line);
 	temp_next = *next_line;
 	*next_line = malloc(next_len + read_len + 1);
-	if (*next_line)
+	if (!*next_line)
 	{
 		return (FALSE);
 	}
@@ -32,8 +39,14 @@ int	str_cpy(char *read_from_fd, char **next_line)
 	return (TRUE);
 }
 
-int	print_error(char *read_from_fd, char **static_buffer, char *message)
+int	print_error(char *read_from_fd, char **static_buffer, int message_type)
 {
+	char	*message;
+
+	if (message_type == EMALLOC)
+		message = "Memory allocation failed\n";
+	else 
+		message = "Read process failed\n";
 	write(2, message, ft_strlen(message));
 	if (*static_buffer)
 		free(*static_buffer);
@@ -42,11 +55,13 @@ int	print_error(char *read_from_fd, char **static_buffer, char *message)
 	return (FALSE);
 }
 
-int	cut_static_buffer(char **static_buffer, char **next_line)
+int	join_static_buffer(char **static_buffer, char **next_line)
 {
 	int		len;
 	char	*temp;
 
+	if (!*static_buffer)
+		return (TRUE);
 	len = ft_strlen(*static_buffer) + ft_strlen(*next_line);
 	temp = malloc(len + 1);
 	if (!temp)
@@ -57,7 +72,21 @@ int	cut_static_buffer(char **static_buffer, char **next_line)
 	free(*next_line);
 	free(*static_buffer);
 	*static_buffer = NULL;
-	*next_line = NULL;
+	*next_line = temp;
+	return (TRUE);
+}
+
+int	last_process(char **static_buffer, char *read_from_fd, char **next_line)
+{
+	char	*after_new_line;
+	
+	if (!join_static_buffer(static_buffer, next_line))
+		return (print_error(read_from_fd, static_buffer, EMALLOC));
+	after_new_line = ft_strchr(read_from_fd, '\n') + 1;
+	*static_buffer = ft_strdup(after_new_line);
+	if (!*static_buffer)
+		return (print_error(read_from_fd, static_buffer, EMALLOC));
+	free(read_from_fd);
 	return (TRUE);
 }
 
@@ -66,47 +95,51 @@ int	read_fd(char **static_buffer, int fd, char **next_line)
 	char	*read_from_fd;
 	int		bytes;
 
-	read_from_fd = malloc(BUFFER_SIZE + 1);
-	if (!read_from_fd)
-		return (print_error(NULL, static_buffer, "Memory allocation failed\n"));
 	bytes = 1;
 	while (bytes > 0)
 	{
+		read_from_fd = malloc(BUFFER_SIZE + 1);
+		if (!read_from_fd)
+			return (print_error(NULL, static_buffer, EMALLOC));
 		bytes = read(fd, read_from_fd, BUFFER_SIZE);
 		if (bytes == -1)
-			return (print_error(read_from_fd, static_buffer, "Read process failed\n"));
+			return (print_error(read_from_fd, static_buffer, EREAD));
 		read_from_fd[bytes] = '\0';
 		if (ft_strchr(read_from_fd, '\n'))
 		{
-			if (!str_cpy(read_from_fd, next_line))
-				return (print_error(read_from_fd, static_buffer, "Memory allocation failed\n"));
+			if (!str_cpy(read_from_fd, next_line, TRUE))
+				return (print_error(read_from_fd, static_buffer, EMALLOC));
 			break ;
 		}
-		else if (!str_cpy(read_from_fd, next_line))
-			return (print_error(read_from_fd, static_buffer, "Memory allocation failed\n"));
+		else if (!str_cpy(read_from_fd, next_line, FALSE))
+			return (print_error(read_from_fd, static_buffer, EMALLOC));
+		free(read_from_fd);
+		read_from_fd = NULL;
 	}
-
-	if (*static_buffer)
-	{
-		// Eğer buffer doluysa read_from_fd 'nin başına bu buffer'ı ekle
-		// Sonrasında static buffer'ı free'le ve NULL yap
-	}
-	// read_from_fd'de new line sonrası eleman varsa buradan itibaren
-	// Hepsini buffer'a ekle ve yeni satırı döndür.
+	if (!last_process(static_buffer, read_from_fd, next_line))
+		return (FALSE);
+	return (TRUE);
 }
 
 int	check_new_line_from_buffer(char **static_buffer, char **next_line)
 {
+	char	*after_new_line;
+	char	*temp;
+	int		len;
+
 	*next_line = NULL;
-	if (*static_buffer)
+	if (*static_buffer && ft_strchr(*static_buffer, '\n'))
 	{
-		// BUFFER NULL DEĞİLSE ÖNCE BUFFER İŞLENİCEK
-		// Buradan new_line'lı satır gelirse
-		// static'den new_line'a olan kadar yer kesilecek
-		// Kesilen yer ayrılamazsa (malloc hatası) FALSE dönülecek.
-		// static buffer güncellenecek
-		// sonra yeni satır dönülecek
-		// eğer new_line yok ise aşağıdan devam edilecek.
+		after_new_line = ft_strchr(*static_buffer, '\n') + 1;
+		len = ft_strlen(*static_buffer) - ft_strlen(after_new_line);
+		*next_line = malloc(len + 1);
+		if (!*next_line)
+			return (free (*static_buffer), FALSE);
+		ft_memmove(*next_line, *static_buffer, len, 0);
+		*next_line[len] = '\0';
+		temp = *static_buffer;
+		*static_buffer = ft_strdup(after_new_line);
+		free(temp);
 	}
 	return (TRUE);
 }
@@ -119,6 +152,7 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || fd >= 1024 )
 		return (NULL);
+	next_line = NULL;
 	check = check_new_line_from_buffer(&buffer, &next_line);
 	if (!check)
 		return (NULL);
@@ -136,8 +170,18 @@ char	*get_next_line(int fd)
 	return (NULL);
 }
 
+
 int main(int argc, char const *argv[])
 {
-	/* code */
+	int fd = open("file", O_RDONLY);
+	char	*line;
+
+	line = get_next_line(fd);
+	while (line)
+	{
+		printf("%s",line);
+		free(line);
+		line = get_next_line(fd);
+	}
 	return 0;
 }
