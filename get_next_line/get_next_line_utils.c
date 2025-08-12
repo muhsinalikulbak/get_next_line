@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muhsin <muhsin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mkulbak <mkulbak@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 00:50:05 by muhsin            #+#    #+#             */
-/*   Updated: 2025/08/12 01:35:06 by muhsin           ###   ########.fr       */
+/*   Updated: 2025/08/12 15:10:51 by mkulbak          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,15 +59,15 @@ void	*ft_memmove(void *dst, const void *src, size_t len, int start)
 		while (len > 0)
 		{
 			len--;
-			*(unsigned char *)(dst + len) = *(unsigned char *)(src + len);
+			*((unsigned char *)dst + start + len) = *((unsigned char *)src + len);
 		}
 	}
 	else
 	{
 		i = 0;
-		while (i < len + start)
+		while (i < len)
 		{
-			*(unsigned char *)(dst + i + start) = *(unsigned char *)(src + i);
+			*((unsigned char *)dst + start + i) = *((unsigned char *)src + i);
 			i++;
 		}
 				
